@@ -3,18 +3,44 @@ Attempts to correct artifacts in Montipora capitata developmental timeseries (3 
 
 The *Montipora capitata* developmental time series appears to contain a technical artifact inflating separation between the spat samples and other life stages. This artifact may influence cross-species comparative analyses.
 
-Firstly, I re-ran the mapping in Hive, since the original analysis was done in Andromeda (now closed), and the MultiQC reports I had from such analysis were not very conclusive (only ran before and after trimming). In the new attempt I ran MultiQC also the Hisat2 logs, feature counts (for diagnostic purposes, as the counts were originally assigned with PrepDE), and I calculated average Transcript Identity Numbers (TINs) per sample, as I do not have access for RINs for this dataset. This revealed the spat samples had both lower alignment rates & lower TINs, suggesting higher degradation. 
+## Remapping and Quality Control
 
-I tested 3 groups of corrections and re-ran PCAs on them. Firstly I included, different variables as covariates in the VST-transformation model (I attempted with alignment rate, TINs, and significant subrogate variables as revealed by SVA analysis). Secondly, I tried to re-residualize the matrixes based on the same variables. Thirdly, I attempted a correction based on a hypothetical batch I termed "spat_status", assumming (I do not actually know this was the case) that the spat samples went on a different sequencing batch and that could be causing the artifact. 
+The original mappings were done on Andromeda (now offline), and the MultiQC reports were only on raw and cleaned reads, to get more informative statistics, I:
+- I **re-mapped all samples using Hive**.
+- I included **Hisat2 logs**, **featureCounts summaries** (only for diagnostic purposes, I had previously used the prepDE script), and computed **Transcript Integrity Numbers (TINs)**.
+- These QC metrics showed that **spat samples had lower alignment rates and TINs**, suggesting RNA degradation.
 
-From group 1, results show there is not significant change in the variance explained by PC1 and PC2, however, the spread or range of the X axis does shrink substantially with corrections, particularly with SVA.
+###  Correction Strategies
 
-From group 2, corrections seem to cause distortions in the data matrix, although PC1 variance is reduced. 
+To reduce the technical separation, I tested three groups of corrections and visualized results via PCA:
 
-ComBat-seq results appear likewise distorted. 
+1. **Incorporating Covariates into VST**
+   - I included covariates in the DESeq2 model used for `vst()`:
+     - Alignment rate
+     - TINs
+     - Surrogate variables from `svaseq()`
 
-I tested whether one of the models with the covariates that at least managed to reduce the spread produced a more normal network output with respect to the uncorrected-VST transformed matrix. For this purpose, I used the ddSEQ design with SVA covariates. 
+2. **Residualization of covariates**
+   - I regressed out the same covariates out of the expression matrix, this created residualized matrices.
 
-In this repository you can find relevant files for the mapping process (MultiQC reports, bioinformatics code), the WGCNA Montipora code and gene count matrix, and the attempts at corrections code with files. 
+3. **ComBat-seq / Hypothetical Batch Adjustment**
+   - I created a `spat_status` variable assuming possible batch effects (e.g., different sequencing run) that could help explain the observed pattern, assuming 'spat' belonged to a different batch as 'larvae' and 'metamorphosed'. 
 
-I also attempted to compare the WGCNA networks produced by the raw-VST transformed counts, vs the VST transformed counts with the significant SVs as covariates. There are some small changes to the network (less genes get assigned to the turquoise module and more to smaller modules), but overall the structure is sustained. 
+## Results from PCA
+
+- **VST with covariates**: No dramatic change in variance explained by PC1/PC2, but **spread along PC1 (range) shrank**, especially with SVA.
+- **Residualized matrices**: These reduced variance but often distorted structure.
+- **ComBat-seq**: Also introduced irregularities in global structure.
+
+## WGCNA Network Comparison
+
+I tested whether including SVs as covariates led to changes in the network. 
+
+- I compared WGCNA networks built on:
+  1. The **uncorrected VST matrix**
+  2. The **VST matrix with SVA as a covariate**
+- Results:
+  - Core network structure remained **largely preserved**.
+  - SVA correction slightly **redistributed module membership** (e.g., fewer genes in turquoise, more in smaller modules).
+
+In this repository I placed relevant files for the mapping process (MultiQC reports, bioinformatics code), the WGCNA Montipora code and gene count matrix, and the attempts at corrections code with files. 

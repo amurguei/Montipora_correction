@@ -1,7 +1,7 @@
 # Montipora_correction
 Attempts to correct artifacts in Montipora capitata developmental timeseries (3 life stages)
 
-The Montipora capitata developmental timeseries has an artifact that is likely inflating the separation between the spat from the other samples. This is likely influencing the downstream multi species analysis. 
+The *Montipora capitata* developmental time series appears to contain a technical artifact inflating separation between the spat samples and other life stages. This artifact may influence cross-species comparative analyses.
 
 Firstly, I re-ran the mapping in Hive, since the original analysis was done in Andromeda (now closed), and the MultiQC reports I had from such analysis were not very conclusive (only ran before and after trimming). In the new attempt I ran MultiQC also the Hisat2 logs, feature counts (for diagnostic purposes, as the counts were originally assigned with PrepDE), and I calculated average Transcript Identity Numbers (TINs) per sample, as I do not have access for RINs for this dataset. This revealed the spat samples had both lower alignment rates & lower TINs, suggesting higher degradation. 
 
@@ -15,4 +15,6 @@ ComBat-seq results appear likewise distorted.
 
 I tested whether one of the models with the covariates that at least managed to reduce the spread produced a more normal network output with respect to the uncorrected-VST transformed matrix. For this purpose, I used the ddSEQ design with SVA covariates. 
 
-In this repository you can find relevant files for the mapping process (MultiQC reports, bioinformatics code), the WGCNA Montipora code and gene count matrix, and the attempts at corrections code with files.  
+In this repository you can find relevant files for the mapping process (MultiQC reports, bioinformatics code), the WGCNA Montipora code and gene count matrix, and the attempts at corrections code with files. 
+
+I also attempted to compare the WGCNA networks produced by the raw-VST transformed counts, vs the VST transformed counts with the significant SVs as covariates. There are some small changes to the network (less genes get assigned to the turquoise module and more to smaller modules), but overall the structure is sustained. 
